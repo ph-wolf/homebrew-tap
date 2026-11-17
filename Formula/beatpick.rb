@@ -3,9 +3,9 @@ class Beatpick < Formula
 
   desc "Select Apple Music tracks by confirmed audio tempo coverage"
   homepage "https://github.com/ph-wolf/beatpick"
-  url "https://github.com/ph-wolf/beatpick/releases/download/v0.2.0/beatpick-0.2.0.tar.gz"
-  version "0.2.0"
-  sha256 "45e846d7b214c5596c3930bd1f52c6fa4a8809a608cbd8ed8693156a5c94411b"
+  url "https://github.com/ph-wolf/beatpick/releases/download/v0.2.1/beatpick-0.2.1.tar.gz"
+  version "0.2.1"
+  sha256 "2f4c6470254e590b7a2cc4ab034f0012824469baf06e188cdd0cc5921004c2b8"
   license "MIT"
 
   depends_on :macos
@@ -26,11 +26,11 @@ class Beatpick < Formula
 
   def caveats
     <<~EOS
-      Create your personal configuration without overwriting an existing file:
-        mkdir -p ~/.beatpick
-        cp #{opt_share}/beatpick/config.example.yaml ~/.beatpick/config.yaml
-      Edit its fictional selection before running:
-        beatpick run --config ~/.beatpick/config.yaml
+      Start your first analysis:
+        beatpick run
+      If no configuration exists, an interactive run creates ~/.beatpick/config.yaml
+      and continues with analysis. Existing configuration is never overwritten.
+      Noninteractive calls require an existing config or an explicit CLI selection.
 
       Optional Codex skill (inspect an existing destination before replacing it):
         mkdir -p ~/.agents/skills
@@ -41,6 +41,7 @@ class Beatpick < Formula
 
   test do
     assert_match version.to_s, shell_output("#{bin}/beatpick --version")
+    assert_match "--no-config", shell_output("#{bin}/beatpick --help")
     assert_match "--duplicate-marker", shell_output("#{bin}/beatpick --help")
     assert_path_exists share/"beatpick/skill/SKILL.md"
     system libexec/"bin/python", "-c", <<~PYTHON
@@ -48,6 +49,9 @@ class Beatpick < Formula
       from scipy import signal
       import yaml
       from beatpick import metadata
+      from beatpick.configuration import locate
+      from types import SimpleNamespace
+      assert locate(SimpleNamespace(no_config=True)) is None
       assert signal.correlate(np.array([1, 2]), np.array([1, 2])).max() == 5
       assert metadata.comment_value('Note', True, 'example-marker') == 'Note\\nexample-marker'
       assert yaml.safe_load('enabled: true')['enabled'] is True
